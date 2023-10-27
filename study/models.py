@@ -16,7 +16,7 @@ class Subject(models.Model):
         ordering = ['title',]
 
 
-class AccessGroup(models.Model):
+class AccessSubjectGroup(models.Model):
     subject = models.ForeignKey(to=Subject, on_delete=models.CASCADE, verbose_name='предмет', **NOT_NULLABLE, related_name='access', help_text='Предмет')
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='студент', **NOT_NULLABLE, related_name='access', help_text='студент')
 
@@ -26,14 +26,14 @@ class AccessGroup(models.Model):
 
 
     class Meta:
-        verbose_name = 'Подписанный пользователь'
-        verbose_name_plural = 'Подписанные пользователи'
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         ordering = ['subject', 'user']
         unique_together = ('subject', 'user',)
 
 
 class Part(models.Model):
-    title = models.CharField(verbose_name='Раздел', max_length=200, help_text="Раздел", **NOT_NULLABLE)
+    title = models.CharField(verbose_name='Раздел', max_length=200, help_text="Раздел", **NOT_NULLABLE, unique=True)
     description = models.TextField(verbose_name='Описание', help_text="Описание", **NULLABLE)
     content = models.TextField(verbose_name='Материалы', help_text="Материалы", **NULLABLE)
     subject = models.ForeignKey(to=Subject, on_delete=models.CASCADE, verbose_name='предмет', **NOT_NULLABLE,
@@ -42,5 +42,32 @@ class Part(models.Model):
     date_add =  models.DateTimeField(auto_now_add=True, verbose_name='дата добавления раздела', **NULLABLE)
     last_update = models.DateTimeField(auto_now=True, verbose_name='дата обновления раздела', **NULLABLE)
     quest_to_test = models.PositiveIntegerField(verbose_name='Вопросов в тест', help_text="Количество вопросов включаемых в тест", default=0, **NULLABLE)
+
+    def __str__(self):
+        return self.title
+
+
+    class Meta:
+        verbose_name = 'Раздел'
+        verbose_name_plural = 'Разделы'
+        ordering = ['subject','order_id']
+
+
+
+class UsefulLink(models.Model):
+    title = models.CharField(verbose_name='Название источника', max_length=200, help_text="Название источника дополнительных материалов по теме", **NOT_NULLABLE, unique=True)
+    url_link = models.URLField(verbose_name='URL', help_text='URL к дополнительными материалами', **NULLABLE)
+    description = models.TextField(verbose_name='Описание', help_text="Описание", **NULLABLE)
+    part = models.ForeignKey(to=Part, on_delete=models.CASCADE, verbose_name='Раздел', **NULLABLE, related_name='links', help_text='Раздел')
+
+    def __str__(self):
+        return self.title
+
+
+    class Meta:
+        verbose_name = 'Ссылка на дополнительные материалы'
+        verbose_name_plural = 'Ссылки на дополнительные материалы'
+
+
 
 
