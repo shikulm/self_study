@@ -1,3 +1,238 @@
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
 
-# Create your views here.
+from rest_framework import generics, viewsets, status
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from study.models import Subject, Part, UsefulLink, AccessSubjectGroup
+from serializers.study import SubjectSerializer, AccessSubjectGroupSerializer, SubjectAccessSerializer
+    # AccessSubjectOnlyUserSerializer
+# AccessSubjectUserSerializer
+from study.permissions import IsOwner
+from users.models import User
+
+
+###### Subject APIView
+class SubjectCreateAPIView(generics.CreateAPIView):
+    """Контроллер для создания предмета через API.
+    Создавать предметы может любой авторизованный пользователь.
+    Ползователь, создающий предмет, становится его автором и владельцем"""
+    serializer_class = SubjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """Назначение автора при создании предмета"""
+        new_subject = serializer.save()
+        new_subject.author = self.request.user
+        new_subject.save()
+
+
+class SubjectListAPIView(generics.ListAPIView):
+    """Контроллер для получения списка всех предметов через API.
+    Просматривать спсики могут любые авторизованные пользователи.
+    Результат можно фильровать и сортировать с помощью параметров:
+     - search=<текст> - ищет текст в полях title, description
+     - <поле>=<значение> - ищет в <поле> <значение>. В качестве полей можно указать  id, title, description
+     - ordering=<поле1>,<поле2>,... - сортирует по перечисленным полям. В качестве полей можно указывать id, title.
+     Пример запроса: http://127.0.0.1:8000/api/subject?search=теория&id=1&ordering=title
+    """
+    serializer_class = SubjectSerializer
+    queryset = Subject.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    # Поиск в результирующем наборе
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    search_fields = ["title", "description",] # Для SearchFilter
+    filterset_fields = ["id", "title", "description", ]  # Для DjangoFilterBackend
+    ordering_fields = ["id", "title",]   # Для OrderingFilter
+
+
+class SubjectListMeAPIView(generics.ListAPIView):
+    """Контроллер для получения списка всех предмето авторизованного пользователяв через API.
+    Просматривать спсики могут любые авторизованные пользователи"""
+    serializer_class = SubjectSerializer
+    # queryset = Subject.objects.filter()
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Subject.objects.filter(author=self.request.user)
+
+
+class  SubjectRetrieveAPIView(generics.RetrieveAPIView):
+    """Контроллер для получения детальной информации по предмету через API.
+    Просматривать детализированные данные по конкретному предмету могут только его авторы и подписанные пользователи"""
+    serializer_class = SubjectSerializer
+    queryset = Subject.objects.all()
+    permission_classes = [IsAuthenticated, IsOwner]
+
+
+class  SubjectUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpdateAPIView):
+    """Контроллер для обновления информации по предмету через API.
+    Обновлять данные по конкретному предмету могут только его авторы и подписанные пользователи"""
+    serializer_class = SubjectSerializer
+    queryset = Subject.objects.all()
+    permission_classes = [IsAuthenticated, IsOwner]
+
+
+class  SubjectDestroyAPIView(generics.DestroyAPIView):
+    """Контроллер для удаления информации по предмету через API.
+    Удалять данные по конкретному предмету могут только его авторы и подписанные пользователи"""
+    queryset = Subject.objects.all()
+    permission_classes = [IsAuthenticated, IsOwner]
+
+
+# class SubjectViewSet(viewsets.ModelViewSet):
+#     """Контроллер для работы с предметами через API (ViewSet).
+#     Просматривать и создавать информацию могут все пользователи,
+#     редактировать и удалять - только авторы курса и администарторы
+#     """
+#     queryset = Subject.objects.all()
+#     serializer_class = SubjectSerializer
+#
+#     def get_permissions(self):
+#         """Определение прав доступа"""
+#         if self.action in ('create', 'list'):
+#             permission_classes = [IsAuthenticated]
+#         elif self.action == 'retrieve':
+#             permission_classes = [IsAuthenticated, IsOwner]
+#         elif self.action in ('update', 'destroy'):
+#             permission_classes = [IsAuthenticated, IsOwner]
+#         return [permission() for permission in permission_classes]
+#
+#
+#     def perform_create(self, serializer):
+#         """Назначение владельца при создании курса"""
+#         new_subject = serializer.save()
+#         new_subject.author = self.request.user
+#         new_subject.save()
+
+
+####### AccessSubjectGroup APIView
+class GrantUserAPIView(APIView):
+    """Контроллер для предоставления пользователю доступа к предмету"""
+    permission_classes = [IsAuthenticated, IsOwner]
+    def post(self, request, pk_subject, pk_user):
+        """Обработка api-запроса на обавление пользователя в модель AccessSubjectGroup"""
+        access_group = self.get_object()
+        if access_group is None:
+            # Объект не получилось создать
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AccessSubjectGroupSerializer(access_group)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+        # try:
+        #     subject = Subject.objects.get(pk=pk_subject)
+        #     user = User.objects.get(pk=pk_user)
+        # except (Subject.DoesNotExist, User.DoesNotExist):
+        #     return Response(status=status.HTTP_404_NOT_FOUND)
+        #
+        # access_group = AccessSubjectGroup(subject=subject, user=user)
+        # access_group.save()
+        #
+        # serializer = AccessSubjectGroupSerializer(access_group)
+        # return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_object(self):
+        """Возвращает ссылку на созданный объект. Если объект не может быть создан, то возвращает None"""
+        pk_subject=self.kwargs.get("pk_subject")
+        pk_user=self.kwargs.get("pk_user")
+
+        # Проверяем существование предмета и пользователя, указанных в параметрах
+        try:
+            subject = Subject.objects.get(pk=pk_subject)
+            user = User.objects.get(pk=pk_user)
+        except (Subject.DoesNotExist, User.DoesNotExist):
+            return None
+
+        # Пробуем найти запись с переданными параметрами в модели AccessSubjectGroup
+        try:
+            access_group = AccessSubjectGroup.objects.get(subject=subject, user=user)
+        except (AccessSubjectGroup.DoesNotExist):
+        # Если объект не найден, то создаем его
+            access_group = AccessSubjectGroup(subject=subject, user=user)
+            access_group.save()
+        return access_group
+
+class DenyUserAPIView(APIView):
+    """Контроллер для запрета пользователю доступа к предмету"""
+    # permission_classes = [IsAuthenticated, IsOwner]
+    def delete(self, request, pk_subject, pk_user):
+        """Обработка api-запроса на удаление пользователя из модели AccessSubjectGroup"""
+        access_group = self.get_object()
+        if access_group is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        access_group.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+        # try:
+        #     access_group = AccessSubjectGroup.objects.get(subject__pk=pk_subject, user__pk=pk_user)
+        # except AccessSubjectGroup.DoesNotExist:
+        #     return Response(status=status.HTTP_404_NOT_FOUND)
+        #
+        # access_group.delete()
+        # return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_object(self):
+        """Возвращает ссылку на удаляемый объект. Если объект не существует, то возвращает None"""
+        pk_subject=self.kwargs.get("pk_subject")
+        pk_user=self.kwargs.get("pk_user")
+
+        # Проверяем существование записи в модели AccessSubjectGroup, по указанным параметрам
+        try:
+            return AccessSubjectGroup.objects.get(subject__pk=pk_subject, user__pk=pk_user)
+        except (Subject.DoesNotExist, User.DoesNotExist):
+            return None
+
+        # Пробуем найти запись с переданными параметрами в модели AccessSubjectGroup
+        try:
+            access_group = AccessSubjectGroup.objects.get(subject=subject, user=user)
+        except (AccessSubjectGroup.DoesNotExist):
+        # Если объект не найден, то создаем его
+            access_group = AccessSubjectGroup(subject=subject, user=user)
+            access_group.save()
+        return access_group
+
+
+class SubjectAccessListAPIView(generics.ListAPIView):
+    """Контроллер для получения списка предметов и подписанных на них пользоатлей через API.
+    Просматривать инфомацию по всем предметам могут только администраторы, авторы предметов получают информацию только по своим предметам.
+    Результат можно фильровать и сортировать с помощью параметров:
+     - search=<текст> - ищет текст в полях title, description, author__email, access_users__email
+     - <поле>=<значение> - ищет в поле значение. В качестве полей можно указать  id, title, description, author__email, access_users__email
+     - ordering=<поле1>,<поле2>,... - сортирует по перечисленным полям. В качестве полей можно указывать id, title, author__email.
+     Пример запроса: http://127.0.0.1:8000/api/subject/access?search=теория&id=1&ordering=author__email
+     """
+    serializer_class = SubjectAccessSerializer
+    # queryset = Subject.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    # Поиск в результирующем наборе
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    search_fields = ["title", "description", "author__email", "access_users__email",] # Для SearchFilter
+    filterset_fields = ["id", "title", "description", "author__email", "access_users__email", ]  # Для DjangoFilterBackend
+    ordering_fields = ["id", "title", "author__email"]   # Для OrderingFilter
+    def get_queryset(self):
+        """Для администраторов возвращает все предметы, а лдля остальных пользоватлей - только предметы, принадлежащие пользователю"""
+        if self.request.user.is_staff:
+            return Subject.objects.all()
+        else:
+            return Subject.objects.filter(author=self.request.user)
+
+
+# class AccessSubjectUserSerializerAPIView(generics.ListAPIView):
+#     """Контроллер для получения списка предметов и подписанных на них пользоатлей через API.
+#     Просмтаривать инфомацию по всем предметам могут только администраторы, авторы предметов получают информацию толоько по своим курсам"""
+#     serializer_class = AccessSubjectOnlyUserSerializer
+#     # queryset = Subject.objects.all()
+#     # permission_classes = [IsAuthenticated]
+#
+#     def get_queryset(self):
+#         # return AccessSubjectGroup.objects.all()
+#         return AccessSubjectGroup.objects.all()

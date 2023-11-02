@@ -4,7 +4,7 @@ from study.models import Part, Subject
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
-class Qustion(models.Model):
+class Question(models.Model):
     """
     Модель c вопросами для тестирования по разделу
     """
@@ -19,7 +19,7 @@ class Qustion(models.Model):
 
     class Meta:
         verbose_name = 'Вопрос теста по разделу'
-        verbose_name_plural = 'Вопросы теста по разделу'
+        verbose_name_plural = 'Вопросы тестов по разделам предмета'
         ordering = ['title',]
 
 
@@ -29,6 +29,8 @@ class Answer(models.Model):
     """
     title = models.TextField(verbose_name='Ответ', help_text="Вариант ответа", **NOT_NULLABLE)
     correct = models.BooleanField(verbose_name='Правильный?', help_text="Признак правильного ответа", **NOT_NULLABLE, default=False)
+    question = models.ForeignKey(to=Question, on_delete=models.CASCADE, verbose_name='Вариант ответа', **NULLABLE,
+                                 related_name='answers', help_text='Вариант ответа')
 
 
     def __str__(self):
@@ -68,11 +70,11 @@ class Test(models.Model):
         ordering = ['-date_create',]
 
 
-class QustionTest(models.Model):
+class QuestionTest(models.Model):
     """
     Модель c вопросами теста и выбранными студентом ответами
     """
-    qustion = models.ForeignKey(to=Qustion, on_delete=models.CASCADE, verbose_name='Вопрос', **NOT_NULLABLE, related_name='questions_test', help_text='Вопрос')
+    question = models.ForeignKey(to=Question, on_delete=models.CASCADE, verbose_name='Вопрос', **NOT_NULLABLE, related_name='questions_test', help_text='Вопрос')
     test = models.ForeignKey(to=Test, on_delete=models.CASCADE, verbose_name='Тест', **NOT_NULLABLE, related_name='questions_test', help_text='Тест')
     answer = models.ForeignKey(to=Answer, on_delete=models.SET_NULL, verbose_name='Выбранный ответ', **NULLABLE, related_name='questions_test', help_text='Выбранный студентом ответ')
 
@@ -83,4 +85,4 @@ class QustionTest(models.Model):
 
     class Meta:
         verbose_name = 'Вопрос теста'
-        verbose_name_plural = 'Вопросы теста'
+        verbose_name_plural = 'Вопросы и результаты теста'

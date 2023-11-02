@@ -9,6 +9,7 @@ class Subject(models.Model):
     title = models.CharField(verbose_name='Предмет', max_length=200, help_text="Предмет", **NOT_NULLABLE)
     description = models.TextField(verbose_name='Описание', help_text="Описание", **NULLABLE)
     author = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name='автор', **NULLABLE, related_name='subject', help_text='Автор')
+    access_users = models.ManyToManyField(User, through='AccessSubjectGroup', related_name='accessible_subjects')
 
     def __str__(self):
         return self.title
@@ -57,9 +58,9 @@ class Part(models.Model):
 
 
     class Meta:
-        verbose_name = 'Раздел'
-        verbose_name_plural = 'Разделы'
-        ordering = ['subject','order_id']
+        verbose_name = 'Раздел предмета'
+        verbose_name_plural = 'Разделы предмета'
+        ordering = ['subject', 'order_id']
 
 
 
