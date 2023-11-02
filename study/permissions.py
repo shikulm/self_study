@@ -19,3 +19,21 @@ class IsOwner(BasePermission):
         elif isinstance(obj, UsefulLink):
             author = obj.part.subject.author
         return request.user == author
+
+
+class IsSubscribedUser(BasePermission):
+    """Класс Permission для предосталения доступа подписанным на предмет пользователям"""
+
+    def has_permission(self, request, view):
+        """Если пользователь автор предмета, возвращет True, иначе False"""
+        # Определяем проверяемый объект
+        obj = view.get_object()
+        # Получаем предмет. Запрос к предмету зависит от типа модели объекта
+        subject = None
+        if isinstance(obj, Subject):
+            subject = obj
+        elif isinstance(obj, (AccessSubjectGroup, Part)):
+            subject = obj.subject
+        elif isinstance(obj, UsefulLink):
+            subject = obj.part.subject
+        return AccessSubjectGroup.objects.filter(user=request.user, subject=subject).exists()

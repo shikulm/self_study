@@ -11,7 +11,7 @@ from study.models import Subject, Part, UsefulLink, AccessSubjectGroup
 from serializers.study import SubjectSerializer, AccessSubjectGroupSerializer, SubjectAccessSerializer
     # AccessSubjectOnlyUserSerializer
 # AccessSubjectUserSerializer
-from study.permissions import IsOwner
+from study.permissions import IsOwner, IsSubscribedUser
 from users.models import User
 
 
@@ -19,7 +19,8 @@ from users.models import User
 class SubjectCreateAPIView(generics.CreateAPIView):
     """Контроллер для создания предмета через API.
     Создавать предметы может любой авторизованный пользователь.
-    Ползователь, создающий предмет, становится его автором и владельцем"""
+    Пользователь, создающий предмет, становится его автором и владельцем.
+    Пример API-запроса POST: http://127.0.0.1:8000/api/subject/create/"""
     serializer_class = SubjectSerializer
     permission_classes = [IsAuthenticated]
 
@@ -32,12 +33,12 @@ class SubjectCreateAPIView(generics.CreateAPIView):
 
 class SubjectListAPIView(generics.ListAPIView):
     """Контроллер для получения списка всех предметов через API.
-    Просматривать спсики могут любые авторизованные пользователи.
+    Просматривать списки могут любые авторизованные пользователи.
     Результат можно фильровать и сортировать с помощью параметров:
      - search=<текст> - ищет текст в полях title, description
      - <поле>=<значение> - ищет в <поле> <значение>. В качестве полей можно указать  id, title, description
      - ordering=<поле1>,<поле2>,... - сортирует по перечисленным полям. В качестве полей можно указывать id, title.
-     Пример запроса: http://127.0.0.1:8000/api/subject?search=теория&id=1&ordering=title
+     Пример API-запроса GET: http://127.0.0.1:8000/api/subject?search=теория&id=1&ordering=title
     """
     serializer_class = SubjectSerializer
     queryset = Subject.objects.all()
@@ -51,8 +52,9 @@ class SubjectListAPIView(generics.ListAPIView):
 
 
 class SubjectListMeAPIView(generics.ListAPIView):
-    """Контроллер для получения списка всех предмето авторизованного пользователяв через API.
-    Просматривать спсики могут любые авторизованные пользователи"""
+    """Контроллер для получения списка всех предметов авторизованного пользователяв через API.
+    Просматривать спсики могут любые авторизованные пользователи.
+    Пример API-запроса GET: http://127.0.0.1:8000/api/subject/me/"""
     serializer_class = SubjectSerializer
     # queryset = Subject.objects.filter()
     permission_classes = [IsAuthenticated]
@@ -66,12 +68,12 @@ class  SubjectRetrieveAPIView(generics.RetrieveAPIView):
     Просматривать детализированные данные по конкретному предмету могут только его авторы и подписанные пользователи"""
     serializer_class = SubjectSerializer
     queryset = Subject.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner|IsSubscribedUser]
 
 
 class  SubjectUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpdateAPIView):
     """Контроллер для обновления информации по предмету через API.
-    Обновлять данные по конкретному предмету могут только его авторы и подписанные пользователи"""
+    Обновлять данные по конкретному предмету могут только его авторы"""
     serializer_class = SubjectSerializer
     queryset = Subject.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
@@ -79,7 +81,7 @@ class  SubjectUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpdateAPIVi
 
 class  SubjectDestroyAPIView(generics.DestroyAPIView):
     """Контроллер для удаления информации по предмету через API.
-    Удалять данные по конкретному предмету могут только его авторы и подписанные пользователи"""
+    Удалять данные по конкретному предмету могут только его авторы"""
     queryset = Subject.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
 
@@ -112,10 +114,11 @@ class  SubjectDestroyAPIView(generics.DestroyAPIView):
 
 ####### AccessSubjectGroup APIView
 class GrantUserAPIView(APIView):
-    """Контроллер для предоставления пользователю доступа к предмету"""
+    """Контроллер для предоставления пользователю доступа к предмету.
+    Предоставлять доступ к предмету могут только его авторы"""
     permission_classes = [IsAuthenticated, IsOwner]
     def post(self, request, pk_subject, pk_user):
-        """Обработка api-запроса на обавление пользователя в модель AccessSubjectGroup"""
+        """Обработка api-запроса на добавление пользователя в модель AccessSubjectGroup"""
         access_group = self.get_object()
         if access_group is None:
             # Объект не получилось создать
@@ -159,8 +162,9 @@ class GrantUserAPIView(APIView):
         return access_group
 
 class DenyUserAPIView(APIView):
-    """Контроллер для запрета пользователю доступа к предмету"""
-    # permission_classes = [IsAuthenticated, IsOwner]
+    """Контроллер для запрета пользователю доступа к предмету.
+    Удалить пользщователя из спсика подписки могут только его авторы"""
+    permission_classes = [IsAuthenticated, IsOwner]
     def delete(self, request, pk_subject, pk_user):
         """Обработка api-запроса на удаление пользователя из модели AccessSubjectGroup"""
         access_group = self.get_object()
@@ -202,15 +206,14 @@ class DenyUserAPIView(APIView):
 
 class SubjectAccessListAPIView(generics.ListAPIView):
     """Контроллер для получения списка предметов и подписанных на них пользоатлей через API.
-    Просматривать инфомацию по всем предметам могут только администраторы, авторы предметов получают информацию только по своим предметам.
+    Просматривать инфомацию по всем предметам могут только администраторы (is_staff=True), авторы предметов получают информацию только по своим предметам.
     Результат можно фильровать и сортировать с помощью параметров:
      - search=<текст> - ищет текст в полях title, description, author__email, access_users__email
      - <поле>=<значение> - ищет в поле значение. В качестве полей можно указать  id, title, description, author__email, access_users__email
      - ordering=<поле1>,<поле2>,... - сортирует по перечисленным полям. В качестве полей можно указывать id, title, author__email.
-     Пример запроса: http://127.0.0.1:8000/api/subject/access?search=теория&id=1&ordering=author__email
+     Пример API-запроса GET: http://127.0.0.1:8000/api/subject/access?search=теория&id=1&ordering=author__email
      """
     serializer_class = SubjectAccessSerializer
-    # queryset = Subject.objects.all()
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе
