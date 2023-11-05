@@ -5,7 +5,8 @@ from study.apps import StudyConfig
 # from study.views import SubjectViewSet
 from study.views import SubjectCreateAPIView, SubjectListAPIView, SubjectRetrieveAPIView, SubjectUpdateAPIView, \
     SubjectDestroyAPIView, SubjectListMeAPIView, GrantUserAPIView, DenyUserAPIView, SubjectAccessListAPIView, \
-    PartCreateAPIView, PartListAPIView, PartListMeAPIView, PartRetrieveAPIView, PartUpdateAPIView, PartDestroyAPIView
+    PartCreateAPIView, PartListAPIView, PartListMeAPIView, PartRetrieveAPIView, PartUpdateAPIView, PartDestroyAPIView, \
+    UsefulLinkCreateAPIView, UsefulLinkUpdateAPIView, UsefulLinkDestroyAPIView
 
 # AccessSubjectUserSerializerAPIView
 
@@ -36,7 +37,10 @@ urlpatterns = [
     path('api/part/<int:pk>/',PartRetrieveAPIView.as_view(), name='part-detail'),
     path('api/part/update/<int:pk>/', PartUpdateAPIView.as_view(), name='part-update'),
     path('api/part/delete/<int:pk>/', PartDestroyAPIView.as_view(), name='part-delete'),
-
+    # UsefulLink
+    path('api/links/create/', UsefulLinkCreateAPIView.as_view(), name='links-create'),
+    path('api/links/update/<int:pk>/', UsefulLinkUpdateAPIView.as_view(), name='links-update'),
+    path('api/links/delete/<int:pk>/', UsefulLinkDestroyAPIView.as_view(), name='links-delete'),
 
 
 ] + router.urls

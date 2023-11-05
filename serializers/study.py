@@ -117,16 +117,25 @@ class SubjectAccessSerializer(serializers.ModelSerializer):
 # #         fields = ("id", "email", "phone", "city")
 #
 
+class UsefulLinkSerializer(serializers.ModelSerializer):
+    """Сериалайзер для работы с дополнительными материалами раздела"""
+
+    class Meta:
+        model = UsefulLink
+        fields = '__all__'
+        # fields = ['pk', 'title', 'url_link', 'description', 'part']
+
 
 class PartForStudentSerializer(serializers.ModelSerializer):
     """Сериалайзер для просмотра разделов предметов студентами (не включает информацию для генерации тестов)"""
 
     subject_info = SubjectSerializer(read_only=True, source="subject")
+    links = UsefulLinkSerializer(read_only=True, many=True)
 
     class Meta:
         model = Part
         # fields = '__all__'
-        fields = ['pk', 'title', 'subject', 'subject_info', 'description', 'content', 'order_id', 'date_create', 'last_update']
+        fields = ['pk', 'title', 'subject', 'subject_info', 'description', 'content', 'order_id', 'date_create', 'last_update', 'links']
         read_only_fields = ('pk', 'order_id', 'date_create', 'last_update')
 
 
@@ -134,10 +143,14 @@ class PartForAuthorSerializer(serializers.ModelSerializer):
     """Сериалайзер для работы с разделами предметов"""
 
     subject_info = SubjectSerializer(read_only=True, source="subject")
+    links = UsefulLinkSerializer(read_only=True, many=True)
     # read_only_fields = ('pk', 'order_id', 'date_create', 'last_update')
     class Meta:
         model = Part
         # fields = '__all__'
-        fields = ['pk', 'title', 'subject', 'subject_info', 'description', 'content', 'order_id', 'date_create', 'last_update', 'quest_to_test']
+        fields = ['pk', 'title', 'subject', 'subject_info', 'description', 'content', 'order_id', 'date_create', 'last_update', 'quest_to_test', 'links']
         # fields = ['pk', 'title', 'subject', 'description', 'content', 'order_id', 'date_create', 'last_update', 'quest_to_test']
         # read_only_fields = ('pk', 'order_id', 'date_create', 'last_update')
+
+
+

@@ -68,7 +68,7 @@ class UsefulLink(models.Model):
     """
     Модель списка полезных ссыок на дополнительные материалы по разделу
     """
-    title = models.CharField(verbose_name='Название источника', max_length=200, help_text="Название источника дополнительных материалов по теме", **NOT_NULLABLE, unique=True)
+    title = models.CharField(verbose_name='Название источника', max_length=200, help_text="Название источника дополнительных материалов по разделу", **NOT_NULLABLE, unique=True)
     url_link = models.URLField(verbose_name='URL', help_text='URL к дополнительными материалами', **NULLABLE)
     description = models.TextField(verbose_name='Описание', help_text="Описание", **NULLABLE)
     part = models.ForeignKey(to=Part, on_delete=models.CASCADE, verbose_name='Раздел', **NULLABLE, related_name='links', help_text='Раздел')

@@ -10,8 +10,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from study.models import Subject, Part, UsefulLink, AccessSubjectGroup
-from serializers.study import SubjectSerializer, AccessSubjectGroupSerializer, SubjectAccessSerializer, PartForAuthorSerializer, PartForStudentSerializer
-    # AccessSubjectOnlyUserSerializer
+from serializers.study import SubjectSerializer, AccessSubjectGroupSerializer, SubjectAccessSerializer, \
+    PartForAuthorSerializer, PartForStudentSerializer, UsefulLinkSerializer
+# AccessSubjectOnlyUserSerializer
 # AccessSubjectUserSerializer
 from study.permissions import IsOwner, IsSubscribedUser
 from users.models import User
@@ -254,7 +255,7 @@ class SubjectAccessListAPIView(generics.ListAPIView):
 ###### Part APIView
 class PartCreateAPIView(generics.CreateAPIView):
     """Контроллер для создания раздела предмета через API.
-    Создавать разделы может автор предмета.
+    Создавать разделы моут автор предмета и администратор.
     Пример API-запроса POST: http://127.0.0.1:8000/api/part/create/"""
     serializer_class = PartForAuthorSerializer
     # queryset = Part.objects.all()
@@ -301,7 +302,7 @@ class PartCreateAPIView(generics.CreateAPIView):
         try:
             part = Part.objects.get(title=title, subject=subject)
         except Part.DoesNotExist:
-        # Если объект не найден, то создаем его без сохранения (сохранять не требуется, т.к. в итоге объект удаляется)
+        # Если объект не найден, то создаем его
             part = Part(title=title, description=description, content=content, subject=subject, order_id=order_id, quest_to_test=quest_to_test)
         return part
 
@@ -351,7 +352,7 @@ class PartListAPIView(generics.ListAPIView):
 
 class PartListMeAPIView(generics.ListAPIView):
     """Контроллер для получения через API списка всех разделов предметов, автором которых является авторизованный пользователь.
-    Просматривать списки могут любые авторизованные пользователи.
+    Выполнять get-запрос могут любые авторизованные пользователи.
     Результат можно фильровать и сортировать с помощью параметров:
      - search=<текст> - ищет текст в полях title, description, content
      - <поле>=<значение> - ищет в <поле> <значение>. В качестве полей можно указать  id, subject (т.е. код предмета), title, description
@@ -391,17 +392,17 @@ class  PartRetrieveAPIView(generics.RetrieveAPIView):
 
 class  PartUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpdateAPIView):
     """Контроллер для обновления информации по разделу предмета через API.
-    Обновлять данные по конкретному разделу могут только авторы предмета"""
+    Обновлять данные по конкретному разделу могут только авторы предмета и администраторы"""
     serializer_class = PartForAuthorSerializer
     queryset = Part.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsAdminUser|IsOwner]
 
 
 class  PartDestroyAPIView(generics.DestroyAPIView):
     """Контроллер для удаления информации по разделу предмета через API.
-    Удалять данные по конкретному разделу могут только авторы предмета"""
+    Удалять данные по конкретному разделу могут только авторы предмета и администраторы"""
     queryset = Part.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsAdminUser|IsOwner]
 
     def perform_destroy(self, instance):
         subject = instance.subject
@@ -415,3 +416,50 @@ class  PartDestroyAPIView(generics.DestroyAPIView):
         return super().perform_destroy(instance)
 
 
+###### UsefulLink APIView
+class UsefulLinkCreateAPIView(generics.CreateAPIView):
+    """Контроллер для создания ссылки на дополнительные материалы раздела предмета через API.
+    Создавать ссыллку могут администратор и автор предмета.
+    Пример API-запроса POST: http://127.0.0.1:8000/api/links/create/"""
+    serializer_class = UsefulLinkSerializer
+    permission_classes = [IsAdminUser|IsOwner]
+    # permission_classes = [IsOwner]
+
+    def get_object(self):
+        """Возвращает ссылку на создаваемый объект. Если объект не получается создать, то возвращает None.
+        Метод используется для проверки разрешения IsOwner"""
+
+        # Получаем переданные пользователем параметры
+        request_data = self.request.data
+        # Сохраняем значения создаваемого объекта в переменные
+        title = request_data.get("title", None)
+        description = request_data.get("description", None)
+        part = request_data.get("part", None)
+        url_link = request_data.get("url_link", 0)
+        # Проверяем существование указанного раздела
+        try:
+            part = Part.objects.get(pk=part)
+        except Part.DoesNotExist:
+            return None
+
+        # Создаем или получаем объект ccskrb fy ljgjkybntkmyst vfnthbfks
+        try:
+            useful_link = UsefulLink.objects.get(title=title, part=part)
+        except UsefulLink.DoesNotExist:
+        # Если объект не найден, то создаем его
+            useful_link = UsefulLink(title=title, description=description, part=part, url_link=url_link)
+        return useful_link
+
+class  UsefulLinkUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpdateAPIView):
+    """Контроллер для обновления ссылки на дополнительные материалы раздела предмета через API.
+    Обновлять данные ссыллки могут администратор и автор предмета"""
+    serializer_class = UsefulLinkSerializer
+    queryset = UsefulLink.objects.all()
+    permission_classes = [IsAdminUser|IsOwner]
+
+
+class  UsefulLinkDestroyAPIView(generics.DestroyAPIView):
+    """Контроллер для удаления ссылки на дополнительные материалы раздела предмета через API.
+    Удалять ссыллку могут администратор и автор предмета"""
+    queryset = UsefulLink.objects.all()
+    permission_classes = [IsAdminUser|IsOwner]

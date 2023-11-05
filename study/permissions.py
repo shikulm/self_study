@@ -39,7 +39,7 @@ class IsOwner(BasePermission, MixinPermission):
         # Определяем проверяемый объект
         if request.method == 'POST':
             # Для запросов POST данные по создаваемому объекту формируются программно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
-            # В остальных случаях obj вернет данные проверяемого объекта
+            # В остальных случаях используется has_object_permission, для которого параметр obj содержит данные проверяемого объекта
             obj = view.get_object()
             return self.check_owner(obj=obj, user=request.user)
         return True
@@ -56,11 +56,15 @@ class IsSubscribedUser(BasePermission, MixinPermission):
     def has_permission(self, request, view):
         """Если пользователь автор предмета, возвращет True, иначе False"""
         # Определяем проверяемый объект
+        print("request.method", request.method)
         if request.method == 'POST':
             # Для запросов POST данные по создаваемому объекту формируются программно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
             # В остальных случаях obj вернет данные проверяемого объекта
             # obj = view.serializer_class.Meta.model
             obj = view.get_object()
+            print("obj=", obj)
+            ret = self.check_owner(obj=obj, user=request.user)
+            print("ret=", ret)
             return self.check_owner(obj=obj, user=request.user)
         return True
 
