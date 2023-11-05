@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import  APITestCase
 
 ##### Subject test
-from study.models import Subject, AccessSubjectGroup
+from study.models import Subject, AccessSubjectGroup, Part
 from users.models import User
 
 
@@ -125,3 +125,76 @@ class AccessSubjectGroupTestCase(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         #  Проверка корректности данных
         self.assertEquals(response.json().get('results')[0].get('access_users')[0].get('pk'), self.user2.pk)
+
+
+class PartTestCase(APITestCase):
+    """Тестирование CRUD предметов"""
+    def setUp(self) -> None:
+        self.user = User.objects.create(email='test@mail.ru', is_staff=True, is_superuser=True)
+        self.client.force_authenticate(self.user)
+        self.subject =Subject.objects.create(title='test', author=self.user)
+        self.part =Part.objects.create(title='test', subject=self.subject, order_id=1)
+
+    def test_list_part(self):
+        """Тестировние вывода списка предметов"""
+        response = self.client.get(reverse('study:part-list'))
+        # print(response.json())
+        # Прверяем статус вывода списка
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        #  Проверка корректности данных
+        self.assertEquals(response.json().get('results')[0].get('title'), self.part.title)
+
+
+    def test_list_me_part(self):
+        """Тестировние вывода списка предметов"""
+        response = self.client.get(reverse('study:part-list-me'))
+        # print(response.json())
+        # Проверяем статус вывода списка
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        #  Проверка корректности данных
+        self.assertEquals(response.json().get('results')[0].get('title'), self.part.title)
+
+
+    def test_retrive_part(self):
+        """Тестировние вывода детальных данных по отдельному предмету"""
+        response = self.client.get(reverse('study:part-detail', args=[self.part.pk]))
+        # print(response.json())
+        # Прверяем статус вывода списка
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        #  Проверка корректности данных
+        self.assertEquals(response.json().get('title'), self.part.title)
+
+
+    def test_create_part(self):
+        """Тестировние создания предмета"""
+        data = {"title": 'test2', 'subject': self.subject.pk}
+        response = self.client.post(reverse('study:part-create'), data)
+        # print("response.json()", response.json())
+        # Прверяем статус вывода списка
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        #  Проверка корректности данных
+        self.assertEquals(Part.objects.all().count(), 2)
+
+
+    def test_update_part(self):
+        """Тестировние обновления предмета"""
+        data = {"title": 'test3'}
+        response = self.client.patch(reverse('study:part-update', args=[self.part.pk]), data)
+        # print(response.json())
+        # Прверяем статус обновления
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # Проверка изменения значения в поле с названием
+        self.assertEquals(response.json().get("title"), "test3")
+
+
+    def test_delete_part(self):
+        """Тестировние удаления предмета"""
+        print("self.part.pk=",self.part.pk)
+        print("self.part.order_id=",self.part.order_id)
+        response = self.client.delete(reverse('study:part-delete', args=[self.part.pk]))
+        # print("response.json()=", response.json())
+        # Прверяем статус вывода списка
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
+        #  Проверка корректности данных
+        self.assertEquals(Part.objects.all().count(), 0)

@@ -4,8 +4,10 @@ from rest_framework.routers import DefaultRouter
 from study.apps import StudyConfig
 # from study.views import SubjectViewSet
 from study.views import SubjectCreateAPIView, SubjectListAPIView, SubjectRetrieveAPIView, SubjectUpdateAPIView, \
-    SubjectDestroyAPIView, SubjectListMeAPIView, GrantUserAPIView, DenyUserAPIView, SubjectAccessListAPIView
-    # AccessSubjectUserSerializerAPIView
+    SubjectDestroyAPIView, SubjectListMeAPIView, GrantUserAPIView, DenyUserAPIView, SubjectAccessListAPIView, \
+    PartCreateAPIView, PartListAPIView, PartListMeAPIView, PartRetrieveAPIView, PartUpdateAPIView, PartDestroyAPIView
+
+# AccessSubjectUserSerializerAPIView
 
 # AccessSubjectUserSerializerAPIView
 
@@ -27,22 +29,15 @@ urlpatterns = [
     # path('api/subject/access/', AccessSubjectUserSerializerAPIView.as_view(), name='subject-access-list'),
     path('api/subject/<int:pk_subject>/grantuser/<int:pk_user>/', GrantUserAPIView.as_view(), name='subject-grantuser'),
     path('api/subject/<int:pk_subject>/denyuser/<int:pk_user>/', DenyUserAPIView.as_view(), name='subject-denyuser'),
+    # Part
+    path('api/part/', PartListAPIView.as_view(), name='part-list'),
+    path('api/part/me/', PartListMeAPIView.as_view(), name='part-list-me'),
+    path('api/part/create/', PartCreateAPIView.as_view(), name='part-create'),
+    path('api/part/<int:pk>/',PartRetrieveAPIView.as_view(), name='part-detail'),
+    path('api/part/update/<int:pk>/', PartUpdateAPIView.as_view(), name='part-update'),
+    path('api/part/delete/<int:pk>/', PartDestroyAPIView.as_view(), name='part-delete'),
 
 
 
-    # path('lessons/', LessonListAPIView.as_view(), name='lesson-list'),
-    # path('lessons/<int:pk>/', LessonRetrieveAPIView.as_view(), name = 'lesson-one'),
-    # path('lessons/create/', LessonCreateAPIView.as_view(),name = 'lesson-create'),
-    # path('lessons/update/<int:pk>/', LessonUpdateAPIView.as_view(),name = 'lesson-update'),
-    # path('lessons/delete/<int:pk>/', LessonDestroyAPIView.as_view(),name = 'lesson-delete'),
-    #
-    # path('payment/', PaymentListAPIView.as_view(), name='payment-list'),
-    # path('course/payment/create/', PaymentCourceCreateAPIView.as_view(), name='payment-course-create'),
-    # path('course/payment/update/<int:pk>/', PaymentCourceUpdateAPIView.as_view(), name='payment-course-update'),
-    #
-    # path('subscripe/', SubscriptionListAPIView.as_view(), name='subscripe-list'),
-    # path('subscripe/<int:pk>/', SubscriptionRetrieveAPIView.as_view(), name='subscripe-one'),
-    # path('subscripe/create/', SubscriptionCreateAPIView.as_view(), name='subscripe-create'),
-    # path('subscripe/delete/<int:pk>/', SubscriptionDestroyAPIView.as_view(), name='subscripe-delete'),
 ] + router.urls
 
