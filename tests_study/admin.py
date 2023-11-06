@@ -25,6 +25,6 @@ class TestAdmin(admin.ModelAdmin):
 
 @admin.register(QuestionTest)
 class QuestionTestAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'test', 'question', 'answer')
+    list_display = ('pk', 'test', 'question', 'user_answer')
     list_filter = ('test', 'question', )
     search_fields = ('test', 'question', 'answer',)

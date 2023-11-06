@@ -76,13 +76,34 @@ class QuestionTest(models.Model):
     """
     question = models.ForeignKey(to=Question, on_delete=models.CASCADE, verbose_name='Вопрос', **NOT_NULLABLE, related_name='questions_test', help_text='Вопрос')
     test = models.ForeignKey(to=Test, on_delete=models.CASCADE, verbose_name='Тест', **NOT_NULLABLE, related_name='questions_test', help_text='Тест')
-    answer = models.ForeignKey(to=Answer, on_delete=models.SET_NULL, verbose_name='Выбранный ответ', **NULLABLE, related_name='questions_test', help_text='Выбранный студентом ответ')
+    user_answer = models.ForeignKey(to=Answer, on_delete=models.SET_NULL, verbose_name='Выбранный ответ', **NULLABLE, related_name='questions_test', help_text='Выбранный студентом ответ')
+    order_id = models.PositiveIntegerField(verbose_name='Номер вопроса', help_text="Порядковый номер вопроса в тесте", **NULLABLE)
 
 
     def __str__(self):
-        return f'{self.title} - {self.qustion}'
+        return f'{self.test} - {self.question}'
 
 
     class Meta:
         verbose_name = 'Вопрос теста'
         verbose_name_plural = 'Вопросы и результаты теста'
+        ordering = ['test', 'order_id']
+
+
+class AnswerTest(models.Model):
+    """
+    Модель c вариантами ответов на вопросы, добавленные в тест конкретного студенто
+    """
+    question_test = models.ForeignKey(to=QuestionTest, on_delete=models.CASCADE, verbose_name='Вопрос', **NOT_NULLABLE, related_name='questions_test', help_text='Вопрос теста')
+    answer = models.ForeignKey(to=Answer, on_delete=models.CASCADE, verbose_name='Ответ', **NOT_NULLABLE, related_name='answer_test', help_text='Вариант ответа')
+    order_id = models.PositiveIntegerField(verbose_name='Номер ответа', help_text="Порядковый номер ответа в тесте", **NULLABLE)
+
+
+    def __str__(self):
+        return f'{self.question_test} - {self.answer}'
+
+
+    class Meta:
+        verbose_name = 'Вариант ответа теста'
+        verbose_name_plural = 'Варианты ответа теста'
+        ordering = ['question_test', 'order_id']
