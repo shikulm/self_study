@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from study.models import Subject, AccessSubjectGroup, Part, UsefulLink
+from tests_study.models import Question
 
 
 class MixinPermission:
@@ -13,7 +14,7 @@ class MixinPermission:
             subject = obj
         elif isinstance(obj, (AccessSubjectGroup, Part)):
             subject = obj.subject
-        elif isinstance(obj, UsefulLink):
+        elif isinstance(obj, (UsefulLink, Question)):
             subject = obj.part.subject
         return subject
 

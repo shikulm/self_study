@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from serializers import UserSerializer
+from serializers.tests_study import QuestionSerializer
 from study.models import Subject, AccessSubjectGroup, Part, UsefulLink
 
 
@@ -144,11 +145,14 @@ class PartForAuthorSerializer(serializers.ModelSerializer):
 
     subject_info = SubjectSerializer(read_only=True, source="subject")
     links = UsefulLinkSerializer(read_only=True, many=True)
+    # RКоличество вопросов для раздела
+    questions_count = serializers.IntegerField(source='questions.count', read_only=True)
+    questions = QuestionSerializer(read_only=True, many=True)
     # read_only_fields = ('pk', 'order_id', 'date_create', 'last_update')
     class Meta:
         model = Part
         # fields = '__all__'
-        fields = ['pk', 'title', 'subject', 'subject_info', 'description', 'content', 'order_id', 'date_create', 'last_update', 'quest_to_test', 'links']
+        fields = ['pk', 'title', 'subject', 'subject_info', 'description', 'content', 'order_id', 'date_create', 'last_update', 'links', 'quest_to_test',  'questions_count', 'questions']
         # fields = ['pk', 'title', 'subject', 'description', 'content', 'order_id', 'date_create', 'last_update', 'quest_to_test']
         # read_only_fields = ('pk', 'order_id', 'date_create', 'last_update')
 

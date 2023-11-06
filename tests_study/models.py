@@ -11,7 +11,7 @@ class Question(models.Model):
     title = models.TextField(verbose_name='Вопрос', help_text="Вопрос", **NOT_NULLABLE)
     difficulty = models.PositiveIntegerField(verbose_name='Сложность вопроса', help_text="Сложность вопроса от 1 до 5 (по умолчанию 1)",
                                              default=1, **NOT_NULLABLE, validators=[MaxValueValidator(5), MinValueValidator(1)])
-    part = models.ForeignKey(to=Part, on_delete=models.CASCADE, verbose_name='Раздел', **NULLABLE, related_name='qusetions', help_text='Раздел')
+    part = models.ForeignKey(to=Part, on_delete=models.CASCADE, verbose_name='Раздел', **NULLABLE, related_name='questions', help_text='Раздел')
 
     def __str__(self):
         return self.title
