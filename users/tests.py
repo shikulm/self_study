@@ -26,7 +26,6 @@ class RegUserTestCase(APITestCase):
         """Проверка на несовпадение паролей"""
         data = {"email": "user@mail.ru", "first_name": "user", "last_name": "user", "password": "12345", "password2": "123456"}
         response = self.client.post(reverse('users:user-create'), data)
-        # print(response.json())
 
         # Прверяем статус
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -44,7 +43,7 @@ class AuthUserTestCase(TestCase):
         # Проверка авторизации
         data = {"email": "user@mail.ru", "password": "12345"}
         response_token = self.client.post(reverse('users:token_obtain_pair'), data)
-        # print(response_token.json())
+
         # Прверяем статус
         self.assertEquals(response_token.status_code, status.HTTP_200_OK)
 

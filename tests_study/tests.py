@@ -26,7 +26,7 @@ class QuestionTestCase(APITestCase):
         """Тестировние создания вопросов по разделу с вариантами ответов"""
         data = {"title": 'test_q2', 'part': self.part.pk, 'difficulty': 1, "answers_input": ["!a1", "a2", "a3", "a4"]}
         response = self.client.post(reverse('tests_study:question-create'), data)
-        # print("response.json()", response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         #  Проверка корректности данных
@@ -43,7 +43,7 @@ class QuestionTestCase(APITestCase):
         """Тестировние обновления вопросов по разделу с вариантами ответов"""
         data = {"title": 'test_q2', 'part': self.part.pk, 'difficulty': 1, "answers_input": ["!a1", "a2", "a3", "a4"]}
         response = self.client.patch(reverse('tests_study:question-update', args=[self.question.pk]), data)
-        # print(response.json())
+
         # Прверяем статус обновления
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
@@ -59,7 +59,7 @@ class QuestionTestCase(APITestCase):
     def test_delete_question(self):
         """Тестировние удаления вопросов по разделу"""
         response = self.client.delete(reverse('tests_study:question-delete', args=[self.question.pk]))
-        # print("response.json()=", response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
         #  Проверка корректности данных
@@ -95,9 +95,8 @@ class GenerateTestCase(APITestCase):
 
     def test_generate_inter(self):
         """Тестирование генерации промежуточного теста по разделу"""
-        # data = {"title": 'test_q2', 'part': self.part.pk, 'difficulty': 1, "answers_input": ["!a1", "a2", "a3", "a4"]}
         response = self.client.post(reverse('tests_study:test-part-create', args=[self.part1.pk]))
-        # print("response.json()", response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         #  Проверка корректности данных
@@ -109,9 +108,9 @@ class GenerateTestCase(APITestCase):
 
     def test_generate_inter(self):
         """Тестирование генерации итогового теста по предмету"""
-        # data = {"title": 'test_q2', 'part': self.part.pk, 'difficulty': 1, "answers_input": ["!a1", "a2", "a3", "a4"]}
+
         response = self.client.post(reverse('tests_study:test-subject-create', args=[self.subject.pk]))
-        # print("response.json()", response.json())
+
         # Проверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         #  Проверка корректности данных
@@ -134,20 +133,11 @@ class UserAnswerForTestCase(APITestCase):
         self.p1q1 = Question.objects.create(title='test_p1q1', difficulty=3, part=self.part1)
         self.p1q1a1 = Answer.objects.create(title='p1q1a1', correct=True, question=self.p1q1)
         self.p1q1a2 = Answer.objects.create(title='p1q1a2', correct=False, question=self.p1q1)
-        # self.p1q2 = Question.objects.create(title='test_p1q2', difficulty=1, part=self.part1)
-        # self.p1q2a1 = Answer.objects.create(title='p1q2a1', correct=True, question=self.p1q2)
-        # self.p1q2a2 = Answer.objects.create(title='p1q2a2', correct=False, question=self.p1q2)
-        # self.p1q3 = Question.objects.create(title='test_p1q3', difficulty=1, part=self.part1)
-        # self.p1q3a1 = Answer.objects.create(title='p1q3a1', correct=True, question=self.p1q3)
-        # self.p1q3a2 = Answer.objects.create(title='p1q3a2', correct=False, question=self.p1q3)
 
         self.part2 = Part.objects.create(title='test_part2', subject=self.subject, order_id=2, quest_to_test=1)
         self.p2q1 = Question.objects.create(title='test_p2q1', difficulty=2, part=self.part2)
         self.p2q1a1 = Answer.objects.create(title='p2q1a1', correct=True, question=self.p2q1)
         self.p2q1a2 = Answer.objects.create(title='p2q1a2', correct=False, question=self.p2q1)
-        # self.p2q2 = Question.objects.create(title='test_p2q2', difficulty=1, part=self.part2)
-        # self.p2q2a1 = Answer.objects.create(title='p2q2a1', correct=True, question=self.p2q2)
-        # self.p2q2a2 = Answer.objects.create(title='p2q2a2', correct=False, question=self.p2q2)
 
         #  Генерируем тест из двух вопрсов (по 1 на раздел) и получаем ссылку на созданный тест
         response = self.client.post(reverse('tests_study:test-subject-create', args=[self.subject.pk]))

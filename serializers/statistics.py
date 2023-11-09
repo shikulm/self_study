@@ -16,7 +16,6 @@ class StatisticsSerializer(serializers.Serializer):
     avg_ball = serializers.FloatField()  # Средний балл
 
 
-# class SubjectStatisticSerializer(SubjectSerializer):
 class SubjectStatisticSerializer(serializers.ModelSerializer):
     """Сериалайзер для вывода статистки по предмету"""
     statistics = StatisticsSerializer(read_only=True) # Стастистика

@@ -78,48 +78,24 @@ class TestGeneratePartView(APIView):
     Пример API-запроса POST: http://127.0.0.1:8000/api/tests/create/part/<part_id>"""
 
     permission_classes = [IsAuthenticated, IsAdminUser | IsOwner | IsSubscribedUser]
-    # permission_classes = [IsSubscribedUser]
     type_test = Test.TYPE_INTERMEDIATE
 
     def post(self, request, parent_id):
         """Генерирует тест для post-запроса и возвращает результат"""
         # Определяем параметры теста
         user = request.user
-        # part_id = request.kwargs.get('part_id')
-        # part_id = request.parser_context['kwargs'].get('part_id')
-        # part_id = request.data.get('part_id')
 
         # Перед егенрацией теста проверяем не нарушаются разрешения
         test = self.get_object()
         self.check_object_permissions(self.request, test)
 
-        # serializer = TestSerializer(data=self.get_object())
-        # print("serializer for valid", serializer)
-        # print("serializer.is_valid()", serializer.is_valid())
-        # if serializer.is_valid():
-        # self.check_object_permissions(self.request, test)
 
         # Вызов функции для генерации промежуточного теста
-        # referer_url = request.META.get('HTTP_REFERER')
-        # request.
-        # print("referer_url in post ", referer_url)
-        # type_test = Test.TYPE_INTERMEDIATE if Test.TYPE_INTERMEDIATE in referer_url else Test.TYPE_FINAL
-        # type_test = 'inter'
-        # test = generate_test(user=user.pk, type=type_test, parent_id=part_id)
-
         test = generate_test(user=user.pk, type=self.type_test, parent_id=parent_id)
-        # test = Test(user=user, type=self.type_test, part_id=parent_id)
-        print("test in post =",test)
-        print("test.__dict__ =", test.__dict__)
-        # test = generate_test(user=user.pk, type='inter', parent_id=part_id)
-        # print("test in post = ", test)
 
         # Использование сериализатора для преобразования объекта в данные
-        # serializer = TestSerializer(data=test)
         serializer = TestSerializer(test)
         # Проверка валидности данных
-        # val=serializer.is_valid()
-        # print("serializer.is_valid() = ",val)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -127,18 +103,10 @@ class TestGeneratePartView(APIView):
         """Возвращает ссылку на созданный объект test. Если объект не может быть создан, то возвращает None.
         Метод используется для проверки разрешения IsOwner"""
         user = self.request.user
-        # referer_url = self.request.META.get('HTTP_REFERER')
-        # print("referer_url in get_object ", referer_url)
-        # type_test = Test.TYPE_INTERMEDIATE if Test.TYPE_INTERMEDIATE in referer_url else Test.TYPE_FINAL
-        # type_test = 'inter'
         parent_id = self.kwargs.get("parent_id")
         if self.type_test == Test.TYPE_INTERMEDIATE:
-            # part_id = self.kwargs.get("parent_id")
-            # test=Test(user=user, type=type_test, part_id=part_id)
             test=Test(user=user, type=self.type_test, part_id=parent_id)
-            # self.check_object_permissions(self.request, test)
         else:
-            # subject_id = self.kwargs.get("parent_id")
             test=Test(user=user, type=self.type_test, subject_id=parent_id)
 
         print("test in get_object =",test)
@@ -157,19 +125,6 @@ class TestGenerateSubjectView(TestGeneratePartView):
 
 
 
-
-# class TestAnswerView(APIView):
-#     """Контроллер для ввода получения ответов пользователя на вопросы теста и вывода резульатов через API.
-#     Пример API-запроса PATCH: http://127.0.0.1:8000/api/tests/<pk_test>/answer/"""
-#
-#     permission_classes = [IsAuthenticated, IsAdminUser | IsOwner | IsSubscribedUser]
-#     # permission_classes = [IsSubscribedUser]
-#     # type_test = Test.TYPE_INTERMEDIATE
-#
-#     def post(self, request, parent_id):
-#         """Генерирует тест для post-запроса и возвращает результат"""
-
-
 class  TestAnswerViewUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpdateAPIView):
     """Контроллер для ввода ответов пользователя на вопросы теста и вывода резульатов через API.
     От пользователя данные принимаем в формате:
@@ -178,7 +133,6 @@ class  TestAnswerViewUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpda
 
     serializer_class = TestUserResultSerializer
     queryset = Test.objects.all()
-    # permission_classes = [IsAuthenticated, IsAdminUser | IsOwner | IsSubscribedUser]
     permission_classes = [IsAuthenticated, IsSelfTestUser]
 
 
@@ -189,33 +143,30 @@ class  TestAnswerViewUpdateAPIView(generics.UpdateAPIView, generics.RetrieveUpda
 
         # Получаем данные от пользователя по ответам на вопросы в формате [{"pk_question": pk_question, "pk_answer": pk_answer}, {...}, ...]
         user_answers = request.data
-        # try:
+        try:
             # Пытаемся в цикле сохранить полученные данные
-        for user_answer in user_answers:
-            pk_question = user_answer['pk_question']
-            pk_answer_test = user_answer['pk_answer']
-            pk_answer = AnswerTest.objects.get(pk=pk_answer_test).answer_id
+            for user_answer in user_answers:
+                pk_question = user_answer['pk_question']
+                pk_answer_test = user_answer['pk_answer']
+                pk_answer = AnswerTest.objects.get(pk=pk_answer_test).answer_id
 
-            # Обновляем запись в модели QuestionTest user_answer для pk=pk_question
-            question_test = QuestionTest.objects.get(pk=pk_question)
-            question_test.user_answer_id = pk_answer
-            question_test.save()
+                # Обновляем запись в модели QuestionTest user_answer для pk=pk_question
+                question_test = QuestionTest.objects.get(pk=pk_question)
+                question_test.user_answer_id = pk_answer
+                question_test.save()
 
-        # Вычисляем пезультат
-        check_test(test)
-        # Вычисляем и выводим результат
-        test.refresh_from_db()
-        serializer = self.get_serializer(test)
-        # serializer.data['user_answer'] = TestUserAnswerSerializer(question_test.questions_test.all(), many=True)
-        # serializer.data['user_answer'] = TestUserAnswerSerializer(QuestionTest.objects.all(), many=True)
-        test_result=serializer.data
-        test_result['user_answer'] = TestUserAnswerSerializer(QuestionTest.objects.filter(test_id=test.pk), many=True).data
-        print("serializer.data['user_answer']", serializer.data.__dict__)
-        # return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(test_result, status=status.HTTP_200_OK)
+            # Вычисляем пезультат
+            check_test(test)
+            # Вычисляем и выводим результат
+            test.refresh_from_db()
+            serializer = self.get_serializer(test)
+            test_result=serializer.data
+            test_result['user_answer'] = TestUserAnswerSerializer(QuestionTest.objects.filter(test_id=test.pk), many=True).data
+            print("serializer.data['user_answer']", serializer.data.__dict__)
+            return Response(test_result, status=status.HTTP_200_OK)
 
-        # except Exception as e:
-        #     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 ### Статистика с результатами тестирования студентов
@@ -230,7 +181,7 @@ class SubjectStatListAPIView(generics.ListAPIView):
      Пример API-запроса GET: http://127.0.0.1:8000/api/tests/statistics/subject/?search=теория&id=1&ordering=title
     """
     serializer_class = SubjectStatisticSerializer
-    # queryset = Subject.objects.all()
+
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе
@@ -277,7 +228,6 @@ class PartStatListAPIView(generics.ListAPIView):
      Пример API-запроса GET: http://127.0.0.1:8000/api/tests/statistics/part/?search=теория&id=1&ordering=title
     """
     serializer_class = PartStatisticSerializer
-    # queryset = Subject.objects.all()
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе
@@ -327,7 +277,6 @@ class UserStatListAPIView(generics.ListAPIView):
      Пример API-запроса GET: http://127.0.0.1:8000/api/tests/statistics/user/?search=Ивановя&id=1&ordering=email
     """
     serializer_class = UserStatisticSerializer
-    # queryset = Subject.objects.all()
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе

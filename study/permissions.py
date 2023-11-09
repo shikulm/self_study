@@ -59,16 +59,11 @@ class IsSubscribedUser(BasePermission, MixinPermission):
     def has_permission(self, request, view):
         """Если пользователь подписан на предмет, возвращет True, иначе False"""
         # Определяем проверяемый объект
-        print("request.method", request.method)
         if request.method == 'POST':
             # Для запросов POST данные по создаваемому объекту формируются программно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
             # В остальных случаях используется параметр obj в методе has_object_permission, который вернет данные проверяемого объекта
-            # obj = view.serializer_class.Meta.model
             obj = view.get_object()
-            print("obj=", obj)
-            ret = self.check_subscribed_user(obj=obj, user=request.user)
-            print("ret=", ret)
-            # return self.check_owner(obj=obj, user=request.user)
+            return self.check_subscribed_user(obj=obj, user=request.user)
         return True
 
     def has_object_permission(self, request, view, obj):
@@ -82,129 +77,3 @@ class IsSelfTestUser(BasePermission):
         """Если пользователь отвечает на вопросы своего теста, возвращет True, иначе False"""
         return request.user==obj.user
 
-
-
-
-
-    # def has_permission(self, request, view):
-    #     """Если пользователь автор предмета, возвращет True, иначе False"""
-    #     # Определяем проверяемый объект
-    #     obj = view.get_object()
-    #     # Получаем предмет. Запрос к предмету зависит от типа модели объекта
-    #     subject = None
-    #     if isinstance(obj, Subject):
-    #         subject = obj
-    #     elif isinstance(obj, (AccessSubjectGroup, Part)):
-    #         subject = obj.subject
-    #     elif isinstance(obj, UsefulLink):
-    #         subject = obj.part.subject
-    #     return AccessSubjectGroup.objects.filter(user=request.user, subject=subject).exists()
-
-# class IsOwner(BasePermission):
-#     """Класс Permission для предосталения доступа владельцу предмета"""
-#     def has_permission(self, request, view):
-#         """Если пользователь автор предмета, возвращет True, иначе False"""
-#         # Определяем проверяемый объект
-#         if request.method == 'POST':
-#             # Для запросов POST данные по создаваемому объекту формируются проагрммно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
-#             # В остальных случаях obj вернет данные проверяемого объекта
-#             # obj = view.serializer_class.Meta.model
-#             obj = view.get_object()
-#         # Получаем автора предмета. Запрос к автору зависит от типа модели объекта
-#             author = None
-#             if isinstance(obj, Subject):
-#                 author = obj.author
-#             elif isinstance(obj, (AccessSubjectGroup, Part)):
-#                 author = obj.subject.author
-#             elif isinstance(obj, UsefulLink):
-#                 author = obj.part.subject.author
-#             return request.user == author
-#         return True
-#
-#
-#
-#     def has_object_permission(self, request, view, obj):
-#         """Если пользователь автор предмета, возвращет True, иначе False"""
-#         # Получаем автора предмета. Запрос к автору зависит от типа модели объекта
-#         author = None
-#         if isinstance(obj, Subject):
-#             author = obj.author
-#         elif isinstance(obj, (AccessSubjectGroup, Part)):
-#             author = obj.subject.author
-#         elif isinstance(obj, UsefulLink):
-#             author = obj.part.subject.author
-#         return request.user == author
-#
-#
-#     # def has_permission(self, request, view):
-#     #     """Если пользователь автор предмета, возвращет True, иначе False"""
-#     #     # Определяем проверяемый объект
-#     #     # obj = view.serializer_class.Meta.model
-#     #     obj = view.get_object()
-#     #     # Получаем автора предмета. Запрос к автору зависит от типа модели объекта
-#     #     author = None
-#     #     if isinstance(obj, Subject):
-#     #         author = obj.author
-#     #     elif isinstance(obj, (AccessSubjectGroup, Part)):
-#     #         author = obj.subject.author
-#     #     elif isinstance(obj, UsefulLink):
-#     #         author = obj.part.subject.author
-#     #     return request.user == author
-#
-#
-# class IsSubscribedUser(BasePermission):
-#     """Класс Permission для предосталения доступа подписанным на предмет пользователям"""
-#
-#     def has_permission(self, request, view):
-#         """Если пользователь автор предмета, возвращет True, иначе False"""
-#         # Определяем проверяемый объект
-#         if request.method == 'POST':
-#             # Для запросов POST данные по создаваемому объекту формируются проагрммно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
-#             # В остальных случаях obj ернет данные проверяемого объекта
-#             # obj = view.serializer_class.Meta.model
-#             obj = view.get_object()
-#
-#             # Получаем предмет. Запрос к предмету зависит от типа модели объекта
-#             subject = None
-#             if isinstance(obj, Subject):
-#                 subject = obj
-#             elif isinstance(obj, (AccessSubjectGroup, Part)):
-#                 subject = obj.subject
-#             elif isinstance(obj, UsefulLink):
-#                 subject = obj.part.subject
-#             return AccessSubjectGroup.objects.filter(user=request.user, subject=subject).exists()
-#         return True
-#
-#
-#     def has_object_permission(self, request, view, obj):
-#         """Если пользователь автор предмета, возвращет True, иначе False"""
-#         # Определяем проверяемый объект
-#         if request.method == 'POST':
-#             # Для запросов POST данные по создаваемому объекту формируются проагрммно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
-#             # В остальных случаях obj ернет данные проверяемого объекта
-#             # obj = view.serializer_class.Meta.model
-#             obj = view.get_object()
-#
-#         # Получаем предмет. Запрос к предмету зависит от типа модели объекта
-#         subject = None
-#         if isinstance(obj, Subject):
-#             subject = obj
-#         elif isinstance(obj, (AccessSubjectGroup, Part)):
-#             subject = obj.subject
-#         elif isinstance(obj, UsefulLink):
-#             subject = obj.part.subject
-#         return AccessSubjectGroup.objects.filter(user=request.user, subject=subject).exists()
-#
-#     # def has_permission(self, request, view):
-#     #     """Если пользователь автор предмета, возвращет True, иначе False"""
-#     #     # Определяем проверяемый объект
-#     #     obj = view.get_object()
-#     #     # Получаем предмет. Запрос к предмету зависит от типа модели объекта
-#     #     subject = None
-#     #     if isinstance(obj, Subject):
-#     #         subject = obj
-#     #     elif isinstance(obj, (AccessSubjectGroup, Part)):
-#     #         subject = obj.subject
-#     #     elif isinstance(obj, UsefulLink):
-#     #         subject = obj.part.subject
-#     #     return AccessSubjectGroup.objects.filter(user=request.user, subject=subject).exists()

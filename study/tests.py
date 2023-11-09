@@ -19,7 +19,6 @@ class SubjectTestCase(APITestCase):
     def test_list_subject(self):
         """Тестировние вывода списка предметов"""
         response = self.client.get(reverse('study:subject-list'))
-        # print(response.json())
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code,
                           status.HTTP_200_OK)
@@ -29,7 +28,7 @@ class SubjectTestCase(APITestCase):
     def test_list_me_subject(self):
         """Тестировние вывода списка предметов"""
         response = self.client.get(reverse('study:subject-list-me'))
-        # print(response.json())
+
         # Проверяем статус вывода списка
         self.assertEquals(response.status_code,
                           status.HTTP_200_OK)
@@ -39,7 +38,7 @@ class SubjectTestCase(APITestCase):
     def test_retrive_subject(self):
         """Тестировние вывода детальных данных по отдельному предмету"""
         response = self.client.get(reverse('study:subject-detail', args=[self.subject.pk]))
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code,
                           status.HTTP_200_OK)
@@ -51,7 +50,7 @@ class SubjectTestCase(APITestCase):
         """Тестировние создания предмета"""
         data = {"title": 'test2'}
         response = self.client.post(reverse('study:subject-create'), data)
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code,
                           status.HTTP_201_CREATED)
@@ -65,7 +64,7 @@ class SubjectTestCase(APITestCase):
         """Тестировние обновления предмета"""
         data = {"title": 'test3'}
         response = self.client.patch(reverse('study:subject-update', args=[self.subject.pk]), data)
-        # print(response.json())
+
         # Прверяем статус обновления
         self.assertEquals(response.status_code,
                           status.HTTP_200_OK)
@@ -76,7 +75,7 @@ class SubjectTestCase(APITestCase):
     def test_delete_subject(self):
         """Тестировние удаления предмета"""
         response = self.client.delete(reverse('study:subject-delete', args=[self.subject.pk]))
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code,
                           status.HTTP_204_NO_CONTENT)
@@ -97,7 +96,7 @@ class AccessSubjectGroupTestCase(APITestCase):
         """Тестировние предоставление и запрета доступа к предмету"""
         # Предоставление доступа пользователю user2
         response = self.client.post(reverse('study:subject-grantuser', args=[self.subject.pk, self.user2.pk]))
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         #  Проверка корректности данных
@@ -107,8 +106,7 @@ class AccessSubjectGroupTestCase(APITestCase):
         response = self.client.delete(reverse('study:subject-denyuser', args=[self.subject.pk, self.user2.pk]))
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
         #  Проверка корректности данных
-        self.assertEquals(AccessSubjectGroup.objects.filter(subject_id=self.subject.pk, user_id=self.user2.pk).count(),
-                          0)
+        self.assertEquals(AccessSubjectGroup.objects.filter(subject_id=self.subject.pk, user_id=self.user2.pk).count(), 0)
 
     def test_subject_access_list(self):
         """Тестировние вывода списка подписанных на предмет пользователей"""
@@ -116,7 +114,7 @@ class AccessSubjectGroupTestCase(APITestCase):
         response = self.client.post(reverse('study:subject-grantuser', args=[self.subject.pk, self.user2.pk]))
         # Получение списка пользователей с правами доступа
         response = self.client.get(reverse('study:subject-access-list'))
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         #  Проверка корректности данных
@@ -135,7 +133,7 @@ class PartTestCase(APITestCase):
     def test_list_part(self):
         """Тестировние вывода списка предметов"""
         response = self.client.get(reverse('study:part-list'))
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         #  Проверка корректности данных
@@ -144,7 +142,7 @@ class PartTestCase(APITestCase):
     def test_list_me_part(self):
         """Тестировние вывода списка предметов"""
         response = self.client.get(reverse('study:part-list-me'))
-        # print(response.json())
+
         # Проверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         #  Проверка корректности данных
@@ -153,7 +151,7 @@ class PartTestCase(APITestCase):
     def test_retrive_part(self):
         """Тестировние вывода детальных данных по отдельному предмету"""
         response = self.client.get(reverse('study:part-detail', args=[self.part.pk]))
-        # print(response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         #  Проверка корректности данных
@@ -163,7 +161,7 @@ class PartTestCase(APITestCase):
         """Тестировние создания предмета"""
         data = {"title": 'test2', 'subject': self.subject.pk}
         response = self.client.post(reverse('study:part-create'), data)
-        # print("response.json()", response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         #  Проверка корректности данных
@@ -173,7 +171,7 @@ class PartTestCase(APITestCase):
         """Тестировние обновления предмета"""
         data = {"title": 'test3'}
         response = self.client.patch(reverse('study:part-update', args=[self.part.pk]), data)
-        # print(response.json())
+
         # Прверяем статус обновления
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
@@ -183,8 +181,8 @@ class PartTestCase(APITestCase):
     def test_delete_part(self):
         """Тестировние удаления предмета"""
         response = self.client.delete(reverse('study:part-delete', args=[self.part.pk]))
-        # print("response.json()=", response.json())
-        # Прверяем статус вывода списка
+
+        # Проверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
         #  Проверка корректности данных
         self.assertEquals(Part.objects.all().count(), 0)
@@ -204,7 +202,7 @@ class UsefulLinkTestCase(APITestCase):
         """Тестировние создания ссылок на полезные материалы для раздела"""
         data = {"title": 'test_link2', 'part': self.part.pk}
         response = self.client.post(reverse('study:links-create'), data)
-        # print("response.json()", response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         #  Проверка корректности данных
@@ -214,7 +212,7 @@ class UsefulLinkTestCase(APITestCase):
         """Тестировние обновления ссылок на полезные материалы для раздела"""
         data = {"title": 'test_link2'}
         response = self.client.patch(reverse('study:links-update', args=[self.link.pk]), data)
-        # print(response.json())
+
         # Прверяем статус обновления
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
@@ -224,7 +222,7 @@ class UsefulLinkTestCase(APITestCase):
     def test_delete_link(self):
         """Тестировние удаления ссылок на полезные материалы для раздела"""
         response = self.client.delete(reverse('study:links-delete', args=[self.link.pk]))
-        # print("response.json()=", response.json())
+
         # Прверяем статус вывода списка
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
         #  Проверка корректности данных

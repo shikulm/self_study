@@ -1,11 +1,6 @@
 import random
-from http import HTTPStatus
-
-from django.contrib.sites import requests
 from django.db import IntegrityError
-from django.forms import model_to_dict
 from rest_framework import status
-from rest_framework.exceptions import NotFound
 
 from study.models import Part, Subject
 from tests_study.models import Test, Question, QuestionTest, Answer, AnswerTest
@@ -32,8 +27,6 @@ def generate_inter_test(test: Test, part_id: int):
     """Генерация теста для промежуточного тестирования по разделу"""
     # Извлекаем информацию по разделу
     print("generate_inter_test.part_id=", part_id)
-    # part = Part.objects.get(pk=part_id)
-    # part = Part.objects.get(pk=13)
     try:
         part = Part.objects.get(pk=part_id)
     except Part.DoesNotExist:
@@ -69,7 +62,7 @@ def create_inter_test(user: int, part_id: int):
     try:
         test = Test(type=Test.TYPE_INTERMEDIATE, part_id=part_id, user_id=user)
         test.save()
-        # test_res = model_to_dict(test, fieldnames={'user': 'user', 'part_id': 'part', 'type': 'type', 'date_create': 'date'})
+
         # Генерируем вопросы тесты
         generate_inter_test(test=test, part_id=part_id)
         return test
@@ -100,7 +93,7 @@ def create_final_test(user: int, subject_id: int):
     try:
         test = Test(type=Test.TYPE_FINAL, subject_id=subject_id, user_id=user)
         test.save()
-        # test_res = model_to_dict(test, fieldnames={'user': 'user', 'part_id': 'part', 'type': 'type', 'date_create': 'date'})
+
         # Генерируем вопросы тесты
         generate_final_test(test=test, subject_id=subject_id)
         return test

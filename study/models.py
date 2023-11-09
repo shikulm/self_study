@@ -1,7 +1,7 @@
 from django.db import models
 from users.models import NULLABLE, NOT_NULLABLE, User
 
-# Create your models here.
+
 class Subject(models.Model):
     """
     Модель для описания предметов

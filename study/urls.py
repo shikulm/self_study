@@ -2,15 +2,12 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from study.apps import StudyConfig
-# from study.views import SubjectViewSet
 from study.views import SubjectCreateAPIView, SubjectListAPIView, SubjectRetrieveAPIView, SubjectUpdateAPIView, \
     SubjectDestroyAPIView, SubjectListMeAPIView, GrantUserAPIView, DenyUserAPIView, SubjectAccessListAPIView, \
     PartCreateAPIView, PartListAPIView, PartListMeAPIView, PartRetrieveAPIView, PartUpdateAPIView, PartDestroyAPIView, \
     UsefulLinkCreateAPIView, UsefulLinkUpdateAPIView, UsefulLinkDestroyAPIView
 
-# AccessSubjectUserSerializerAPIView
 
-# AccessSubjectUserSerializerAPIView
 
 app_name = StudyConfig.name
 

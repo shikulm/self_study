@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import Max, Q
-from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import generics, viewsets, status
@@ -12,8 +11,6 @@ from rest_framework.views import APIView
 from study.models import Subject, Part, UsefulLink, AccessSubjectGroup
 from serializers.study import SubjectSerializer, AccessSubjectGroupSerializer, SubjectAccessSerializer, \
     PartForAuthorSerializer, PartForStudentSerializer, UsefulLinkSerializer
-# AccessSubjectOnlyUserSerializer
-# AccessSubjectUserSerializer
 from study.permissions import IsOwner, IsSubscribedUser
 from users.models import User
 
@@ -59,7 +56,6 @@ class SubjectListMeAPIView(generics.ListAPIView):
     Просматривать спсики могут любые авторизованные пользователи.
     Пример API-запроса GET: http://127.0.0.1:8000/api/subject/me/"""
     serializer_class = SubjectSerializer
-    # queryset = Subject.objects.filter()
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -90,32 +86,6 @@ class  SubjectDestroyAPIView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated, IsOwner]
 
 
-# class SubjectViewSet(viewsets.ModelViewSet):
-#     """Контроллер для работы с предметами через API (ViewSet).
-#     Просматривать и создавать информацию могут все пользователи,
-#     редактировать и удалять - только авторы курса и администарторы
-#     """
-#     queryset = Subject.objects.all()
-#     serializer_class = SubjectSerializer
-#
-#     def get_permissions(self):
-#         """Определение прав доступа"""
-#         if self.action in ('create', 'list'):
-#             permission_classes = [IsAuthenticated]
-#         elif self.action == 'retrieve':
-#             permission_classes = [IsAuthenticated, IsOwner]
-#         elif self.action in ('update', 'destroy'):
-#             permission_classes = [IsAuthenticated, IsOwner]
-#         return [permission() for permission in permission_classes]
-#
-#
-#     def perform_create(self, serializer):
-#         """Назначение владельца при создании курса"""
-#         new_subject = serializer.save()
-#         new_subject.author = self.request.user
-#         new_subject.save()
-
-
 ####### AccessSubjectGroup APIView
 class GrantUserAPIView(APIView):
     """Контроллер для предоставления пользователю доступа к предмету.
@@ -131,18 +101,6 @@ class GrantUserAPIView(APIView):
         serializer = AccessSubjectGroupSerializer(access_group)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-        # try:
-        #     subject = Subject.objects.get(pk=pk_subject)
-        #     user = User.objects.get(pk=pk_user)
-        # except (Subject.DoesNotExist, User.DoesNotExist):
-        #     return Response(status=status.HTTP_404_NOT_FOUND)
-        #
-        # access_group = AccessSubjectGroup(subject=subject, user=user)
-        # access_group.save()
-        #
-        # serializer = AccessSubjectGroupSerializer(access_group)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_object(self):
         """Возвращает ссылку на созданный объект. Если объект не может быть создан, то возвращает None.
@@ -178,19 +136,9 @@ class DenyUserAPIView(APIView):
 
         # Проверка доступа с использованием has_object_permission()
         self.check_object_permissions(request, access_group)
-        # has_object_permission(self, request, view, obj)
-
         access_group.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-        # try:
-        #     access_group = AccessSubjectGroup.objects.get(subject__pk=pk_subject, user__pk=pk_user)
-        # except AccessSubjectGroup.DoesNotExist:
-        #     return Response(status=status.HTTP_404_NOT_FOUND)
-        #
-        # access_group.delete()
-        # return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_object(self):
         """Возвращает ссылку на удаляемый объект. Если объект не существует, то возвращает None.
@@ -211,7 +159,6 @@ class DenyUserAPIView(APIView):
         except AccessSubjectGroup.DoesNotExist:
         # Если объект не найден, то создаем его без сохранения (сохранять не требуется, т.к. в итоге объект удаляется)
             access_group = AccessSubjectGroup(subject=subject, user=user)
-            # access_group.save()
         return access_group
 
 
@@ -240,25 +187,12 @@ class SubjectAccessListAPIView(generics.ListAPIView):
             return Subject.objects.filter(author=self.request.user)
 
 
-# class AccessSubjectUserSerializerAPIView(generics.ListAPIView):
-#     """Контроллер для получения списка предметов и подписанных на них пользоатлей через API.
-#     Просмтаривать инфомацию по всем предметам могут только администраторы, авторы предметов получают информацию толоько по своим курсам"""
-#     serializer_class = AccessSubjectOnlyUserSerializer
-#     # queryset = Subject.objects.all()
-#     # permission_classes = [IsAuthenticated]
-#
-#     def get_queryset(self):
-#         # return AccessSubjectGroup.objects.all()
-#         return AccessSubjectGroup.objects.all()
-
-
 ###### Part APIView
 class PartCreateAPIView(generics.CreateAPIView):
     """Контроллер для создания раздела предмета через API.
     Создавать разделы моут автор предмета и администратор.
     Пример API-запроса POST: http://127.0.0.1:8000/api/part/create/"""
     serializer_class = PartForAuthorSerializer
-    # queryset = Part.objects.all()
     permission_classes = [IsOwner|IsAdminUser]
 
     def get_new_order_id(self, subject):
@@ -271,11 +205,7 @@ class PartCreateAPIView(generics.CreateAPIView):
         """Вычисление порядкового номера добавляемого раздела (максимальный для предмета + 1)"""
         if serializer.is_valid():
             new_part = serializer.save()
-            # last_order_id = Part.objects.filter(subject=new_part.subject).aggregate(order_id_last=Max('order_id')).get('order_id_last')
-            # new_part.order_id = last_order_id+1 if last_order_id else 1
             new_part.order_id = self.get_new_order_id(new_part.subject)
-            # new_part.order_id = Part.objects.filter(subject=new_part.subject).aggregate(order_id_last=Max('order_id')).get('order_id_last')+1
-            # new_part.order_id = Part.objects.filter(subject=new_part.subject__id).max()
             new_part.save()
 
 
@@ -319,8 +249,6 @@ class PartListAPIView(generics.ListAPIView):
      - ordering=<поле1>,<поле2>,... - сортирует по перечисленным полям. В качестве полей можно указывать id, subject, title, order_id.
      Пример API-запроса GET: http://127.0.0.1:8000/api/part/?search=проект&subject=1&ordering=subject,order_id
     """
-    # serializer_class = PartForStudentSerializer
-    # queryset = Part.objects.all()
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе
@@ -335,8 +263,6 @@ class PartListAPIView(generics.ListAPIView):
             return Part.objects.all()
         else:
             # Для остальных пользователей только предметы, на которые они подписаны, либо у которых они являются авторами
-            # return Part.objects.filter(Q(subject__access_users__user=self.request.user)|Q(subject__author=self.request.user))
-            # return Part.objects.filter(subject__access_users__user=self.request.user)
             return Part.objects.filter(Q(subject__access__user=self.request.user)|Q(subject__author=self.request.user))
 
 
@@ -359,7 +285,6 @@ class PartListMeAPIView(generics.ListAPIView):
      - ordering=<поле1>,<поле2>,... - сортирует по перечисленным полям. В качестве полей можно указывать id, subject, title, order_id.
     Пример API-запроса GET: http://127.0.0.1:8000/api/part/me/?search=проект&subject=1&ordering=subject,order_id"""
     serializer_class = PartForAuthorSerializer
-    # queryset = Subject.objects.filter()
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе
@@ -376,7 +301,6 @@ class  PartRetrieveAPIView(generics.RetrieveAPIView):
     """Контроллер для получения детальной информации по разделу предмету через API.
     Просматривать детализированные данные по конкретному предмету могут только его авторы, админситраторы и подписанные пользователи.
     Авторы и администраторы также могут видеть настройки для генерации тестов"""
-    # serializer_class = SubjectSerializer
     queryset = Part.objects.all()
     permission_classes = [IsAuthenticated, IsAdminUser|IsOwner|IsSubscribedUser]
 
@@ -412,7 +336,6 @@ class  PartDestroyAPIView(generics.DestroyAPIView):
         Part.objects.filter(subject=subject, order_id__gt=order_id).update(order_id=models.F('order_id') - 1)
 
         # Удаляем объект instance
-        # instance.delete()
         return super().perform_destroy(instance)
 
 
@@ -423,7 +346,6 @@ class UsefulLinkCreateAPIView(generics.CreateAPIView):
     Пример API-запроса POST: http://127.0.0.1:8000/api/links/create/"""
     serializer_class = UsefulLinkSerializer
     permission_classes = [IsAdminUser|IsOwner]
-    # permission_classes = [IsOwner]
 
     def get_object(self):
         """Возвращает ссылку на создаваемый объект. Если объект не получается создать, то возвращает None.
