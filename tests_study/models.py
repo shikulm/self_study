@@ -78,6 +78,7 @@ class QuestionTest(models.Model):
     test = models.ForeignKey(to=Test, on_delete=models.CASCADE, verbose_name='Тест', **NOT_NULLABLE, related_name='questions_test', help_text='Тест')
     user_answer = models.ForeignKey(to=Answer, on_delete=models.SET_NULL, verbose_name='Выбранный ответ', **NULLABLE, related_name='questions_test', help_text='Выбранный студентом ответ')
     order_id = models.PositiveIntegerField(verbose_name='Номер вопроса', help_text="Порядковый номер вопроса в тесте", **NULLABLE)
+    isCorrect = models.BooleanField(verbose_name='Признак правильного ответа', help_text="Признак правильного ответа (True - правильный, False - неправильный)", default=False, **NULLABLE)
 
 
     def __str__(self):
@@ -94,7 +95,7 @@ class AnswerTest(models.Model):
     """
     Модель c вариантами ответов на вопросы, добавленные в тест конкретного студенто
     """
-    question_test = models.ForeignKey(to=QuestionTest, on_delete=models.CASCADE, verbose_name='Вопрос', **NOT_NULLABLE, related_name='questions_test', help_text='Вопрос теста')
+    question_test = models.ForeignKey(to=QuestionTest, on_delete=models.CASCADE, verbose_name='Вопрос', **NOT_NULLABLE, related_name='answers_test', help_text='Вопрос теста')
     answer = models.ForeignKey(to=Answer, on_delete=models.CASCADE, verbose_name='Ответ', **NOT_NULLABLE, related_name='answer_test', help_text='Вариант ответа')
     order_id = models.PositiveIntegerField(verbose_name='Номер ответа', help_text="Порядковый номер ответа в тесте", **NULLABLE)
 

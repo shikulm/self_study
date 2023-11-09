@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',
     'rest_framework_simplejwt', # Использование jwt для управления доступом через API
     'django_celery_beat', # Для работы с периодическими задачами
+    # 'django_extensions', # пакет с улучшенной оболочкой shell_plus (запускается python manage.py shell_plus), позволяет учесть изменения в программе
     
     'users',
     'study',

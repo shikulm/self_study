@@ -1,7 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from study.models import Subject, AccessSubjectGroup, Part, UsefulLink
-from tests_study.models import Question
+from tests_study.models import Question, Test
 
 
 class MixinPermission:
@@ -16,6 +16,8 @@ class MixinPermission:
             subject = obj.subject
         elif isinstance(obj, (UsefulLink, Question)):
             subject = obj.part.subject
+        elif isinstance(obj, Test):
+            subject = obj.part.subject if obj.part else obj.subject
         return subject
 
 
@@ -28,7 +30,7 @@ class MixinPermission:
 
     def check_subscribed_user(self, obj, user):
         """Проверяет подписан ли пользователь user на объект obj"""
-        subj = self.get_subject(obj).author
+        subj = self.get_subject(obj)
         return AccessSubjectGroup.objects.filter(user=user, subject=subj).exists()
 
 
@@ -55,23 +57,32 @@ class IsSubscribedUser(BasePermission, MixinPermission):
     """Класс Permission для предосталения доступа подписанным на предмет пользователям"""
 
     def has_permission(self, request, view):
-        """Если пользователь автор предмета, возвращет True, иначе False"""
+        """Если пользователь подписан на предмет, возвращет True, иначе False"""
         # Определяем проверяемый объект
         print("request.method", request.method)
         if request.method == 'POST':
             # Для запросов POST данные по создаваемому объекту формируются программно с помощью метода get_object() в представлении, поэтому обращаемся к нему.
-            # В остальных случаях obj вернет данные проверяемого объекта
+            # В остальных случаях используется параметр obj в методе has_object_permission, который вернет данные проверяемого объекта
             # obj = view.serializer_class.Meta.model
             obj = view.get_object()
             print("obj=", obj)
-            ret = self.check_owner(obj=obj, user=request.user)
+            ret = self.check_subscribed_user(obj=obj, user=request.user)
             print("ret=", ret)
-            return self.check_owner(obj=obj, user=request.user)
+            # return self.check_owner(obj=obj, user=request.user)
         return True
 
     def has_object_permission(self, request, view, obj):
         """Если пользователь автор предмета, возвращет True, иначе False"""
-        return self.check_owner(obj=obj, user=request.user)
+        return self.check_subscribed_user(obj=obj, user=request.user)
+
+class IsSelfTestUser(BasePermission):
+    """Класс Permission для предосталения доступа пользователю возможности отправки ответов на вопросы его теста"""
+
+    def has_object_permission(self, request, view, obj):
+        """Если пользователь отвечает на вопросы своего теста, возвращет True, иначе False"""
+        return request.user==obj.user
+
+
 
 
 

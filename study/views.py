@@ -71,7 +71,7 @@ class  SubjectRetrieveAPIView(generics.RetrieveAPIView):
     Просматривать детализированные данные по конкретному предмету могут только его авторы и подписанные пользователи"""
     serializer_class = SubjectSerializer
     queryset = Subject.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner|IsSubscribedUser]
+    permission_classes = [IsAuthenticated, IsAdminUser|IsOwner|IsSubscribedUser]
     # permission_classes = [IsOwner|IsSubscribedUser]
 
 
@@ -233,7 +233,7 @@ class SubjectAccessListAPIView(generics.ListAPIView):
     filterset_fields = ["id", "title", "description", "author__email", "access_users__email", ]  # Для DjangoFilterBackend
     ordering_fields = ["id", "title", "author__email"]   # Для OrderingFilter
     def get_queryset(self):
-        """Для администраторов возвращает все предметы, а лдля остальных пользоватлей - только предметы, принадлежащие пользователю"""
+        """Для администраторов возвращает все предметы, а для остальных пользоватлей - только предметы, принадлежащие пользователю"""
         if self.request.user.is_staff:
             return Subject.objects.all()
         else:
