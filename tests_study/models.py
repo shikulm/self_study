@@ -8,7 +8,7 @@ class Question(models.Model):
     """
     Модель c вопросами для тестирования по разделу
     """
-    title = models.TextField(verbose_name='Вопрос', help_text="Вопрос", **NOT_NULLABLE)
+    title = models.TextField(verbose_name='Вопрос', help_text="Вопрос", unique=True, **NOT_NULLABLE)
     difficulty = models.PositiveIntegerField(verbose_name='Сложность вопроса', help_text="Сложность вопроса от 1 до 5 (по умолчанию 1)",
                                              default=1, **NOT_NULLABLE, validators=[MaxValueValidator(5), MinValueValidator(1)])
     part = models.ForeignKey(to=Part, on_delete=models.CASCADE, verbose_name='Раздел', **NULLABLE, related_name='questions', help_text='Раздел')

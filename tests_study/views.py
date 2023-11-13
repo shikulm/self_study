@@ -231,10 +231,10 @@ class PartStatListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     # Поиск в результирующем наборе
-    # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    # search_fields = ["title",] # Для SearchFilter
-    # filterset_fields = ["id", "title", ]  # Для DjangoFilterBackend
-    # ordering_fields = ["id", "title",]   # Для OrderingFilter
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    search_fields = ["title",] # Для SearchFilter
+    filterset_fields = ["id", "title", ]  # Для DjangoFilterBackend
+    ordering_fields = ["id", "title",]   # Для OrderingFilter
 
     def get_queryset(self):
         """Для администраторов возвращает все предметы, а для остальных пользоватлей - только предметы, принадлежащие пользователю"""

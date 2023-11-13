@@ -265,7 +265,6 @@ class PartListAPIView(generics.ListAPIView):
             # Для остальных пользователей только предметы, на которые они подписаны, либо у которых они являются авторами
             return Part.objects.filter(Q(subject__access__user=self.request.user)|Q(subject__author=self.request.user))
 
-
     def get_serializer_class(self):
         """Выбирает сериализатор для раздела (в зависимости от роли пользователя)"""
         if self.request.user.is_staff:
